@@ -38,8 +38,37 @@ jQuery(function ($) {
 		}
 	};
 
+	var hack = {
+
+		github_setup: function (){
+	        $.ajaxSetup({
+		        beforeSend: function(xhr) {
+		          xhr.setRequestHeader('Authorization', 'token e3edcd20dcf92d5d2e7ad76afef10320e146b646');
+		        }
+	      	});
+	      },
+	  fetch_github: function(){
+	  	this.github_setup();
+	      $.ajax({
+	      	type: 'GET',
+		      url: 'https://api.github.com/issues',
+		      async: false,
+	        success: function (data, textStatus, jqXHR) {
+	          var gh_todos = $.map(data, function (e, i) {
+	            return { id: util.uuid(), title: e.title, completed: false };
+	          });
+	          var a = util.store('todos-jquery');
+
+	          a = a.concat(gh_todos);
+	          util.store('todos-jquery', a);
+	        }
+	      });
+	    }
+	  };
+
 	var App = {
 		init: function () {
+			hack.fetch_github();
 			this.todos = util.store('todos-jquery');
 			this.cacheElements();
 			this.bindEvents();
@@ -52,6 +81,7 @@ jQuery(function ($) {
 			}).init('/all');
 		},
 		cacheElements: function () {
+
 			this.todoTemplate = Handlebars.compile($('#todo-template').html());
 			this.footerTemplate = Handlebars.compile($('#footer-template').html());
 			this.$todoApp = $('#todoapp');
